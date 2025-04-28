@@ -54,10 +54,22 @@ input:focus {
     border-radius: 5px;
     cursor: pointer;
     font-size: 1rem;
+    text-align: center;
+    text-decoration: none;
+    display: block;
 }
 
 .btn:hover {
     background: #0056b3;
+}
+
+.btn-logout {
+    background: #dc3545;
+    margin-top: 2rem;
+}
+
+.btn-logout:hover {
+    background: #bb2d3b;
 }
 
 p {
@@ -72,4 +84,11 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+.dashboard-content {
+    text-align: center;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
 }
