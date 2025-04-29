@@ -7,13 +7,6 @@ from sqlalchemy import and_
 from sqlalchemy import delete
 
 
-
-
-# Инициализация bcrypt
-# для bcrypt соль генерируется автоматически в процессе хэширования
-# Также bcrypt безопасно хранит соль в самом хэшированном значении
-
-# Этот класс группирует все операции над пользователями (регистрация, вход и поиск)
 class UserCrud:
 
     @staticmethod
@@ -49,7 +42,6 @@ class UserCrud:
         return query.scalars().first()
 
 
-# Этот класс отвечает за создание рецептов, их поиск и добавление отзывов
 class RecipeCrud:
 
     @staticmethod
@@ -120,9 +112,7 @@ class RecipeCrud:
         result = await db.execute(query)
         return result.scalars().all()
 
-
     @staticmethod
     async def clear_recipes_table(db: AsyncSession):
         await db.execute(delete(Recipe))
         await db.commit()
-

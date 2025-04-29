@@ -2,6 +2,8 @@ import aiohttp
 import asyncio
 import json
 from sberchat import get_short_description
+from app.database.crud import RecipeCrud
+from app.database.database import get_db
 
 # Словарь с оценочным временем готовки
 COOKING_TIMES = {
@@ -77,12 +79,11 @@ async def main():
         json_string_meal = json.dumps(meal)
         short_info = get_short_description(json_string_meal)
 
-        print(info)
-        print('\n\n')
-        print(short_info)
+        async for db in get_db():
+            await RecipeCrud.create_recipe(db=db, title=meal['title'], description=info,
+                                           cuisine=meal['cuisine'], giga_chat_description=short_info)
 
-
-# TODO: добавить добавление в базу
+        print("Добавил рецепт в базу")
 
 
 # Запуск асинхронного кода
