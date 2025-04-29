@@ -7,7 +7,7 @@ from app.database.database import get_db
 from typing import Optional
 from fastapi import Query
 
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter
 
 router = APIRouter()
 app = FastAPI()

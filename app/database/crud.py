@@ -6,9 +6,6 @@ from sqlalchemy import and_
 
 from sqlalchemy import delete
 
-
-
-
 # Инициализация bcrypt
 # для bcrypt соль генерируется автоматически в процессе хэширования
 # Также bcrypt безопасно хранит соль в самом хэшированном значении
