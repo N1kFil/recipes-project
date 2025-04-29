@@ -38,3 +38,6 @@ anyio~=4.8.0
 httptools~=0.6.4
 wsproto~=1.2.0
 watchfiles~=1.0.4
+gigachat
+aiohttp
+greenlet
