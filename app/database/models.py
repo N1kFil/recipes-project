@@ -21,6 +21,8 @@ class Recipe(Base):
     ratings = Column(JSON, default=list)  # список оценок
     average_rating = Column(Float, default=0.0)  # средняя оценка
     ratings_count = Column(Integer, default=0)  # количество оценок
+    giga_chat_description = Column(String, nullable=True) # описание с giga chat
+    cooking_time = Column(Integer, nullable=True)  # время готовки в минутах
 
     reviews = relationship("Review", back_populates="recipe")
 
