@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    container_name: recipes_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: recipes_db
+    ports:
+      - "5436:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  app:
+    build: .
+    container_name: recipes_app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:12345@db:5432/recipes_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
