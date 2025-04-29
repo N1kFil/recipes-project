@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="../static/styles.css">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Регистрация</h2>
+        <form action="dashboard.html" method="GET">
+            <div class="input-group">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username" required minlength="3">
+            </div>
+
+            <div class="input-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required minlength="6">
+            </div>
+
+            <div class="input-group">
+                <label for="confirm_password">Подтвердите пароль:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+
+            <button type="submit" class="btn">Зарегистрироваться</button>
+        </form>
+        <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+    </div>
+</body>
+</html>
