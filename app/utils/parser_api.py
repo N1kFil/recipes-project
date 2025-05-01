@@ -81,7 +81,8 @@ async def main():
 
         async for db in get_db():
             await RecipeCrud.create_recipe(db=db, title=meal['title'], description=info,
-                                           cuisine=meal['cuisine'], giga_chat_description=short_info)
+                                           cuisine=meal['cuisine'], giga_chat_description=short_info,
+                                           cooking_time=meal['cooking_time'])
 
         print("Добавил рецепт в базу")
 
