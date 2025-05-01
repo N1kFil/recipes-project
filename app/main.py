@@ -1,23 +1,30 @@
-from fastapi import FastAPI
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.database.database import engine, Base
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.database.database import engine, Base, async_session
+from app.database.database import get_db
 
 import uvicorn
 
-router = APIRouter()
-app = FastAPI()
-templates = Jinja2Templates(directory="templates")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    yield
+
+
+router = APIRouter()
+app = FastAPI(lifespan=lifespan)
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 @app.get("/")
@@ -26,9 +33,19 @@ async def start():
 
 
 @app.get("/login", response_class=HTMLResponse)
-async def login(request: Request):
+async def login_get(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 
+@app.post("/login")
+async def login_post(username: str, password: str, db: AsyncSession = Depends(get_db)):
+    pass
+
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_get(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=5436)
