@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import User, Recipe, Review
 from sqlalchemy import and_
-
 from sqlalchemy import delete
 
 

@@ -7,9 +7,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.database.database import engine, Base, async_session
+from app.database.database import async_session, engine, Base
 from app.database.database import get_db
+from app.database.crud import UserCrud, RecipeCrud
 
 import uvicorn
 
