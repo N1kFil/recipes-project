@@ -1,9 +1,12 @@
+from pickletools import pybytes
+
 import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import User, Recipe, Review
 from sqlalchemy import and_
 from sqlalchemy import delete
+from sqlalchemy.orm import selectinload
 
 
 class UserCrud:
@@ -62,7 +65,7 @@ class RecipeCrud:
 
     @staticmethod
     async def get_recipe(db: AsyncSession, recipe_id: int):
-        query = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
+        query = await db.execute(select(Recipe).where(Recipe.id == recipe_id).options(selectinload(Recipe.reviews)))
         return query.scalars().first()
 
     @staticmethod

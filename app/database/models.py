@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, JSON
+from sqlalchemy.dialects.postgresql import BYTEA
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -7,7 +8,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False, index=True)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(BYTEA, nullable=False)
 
     reviews = relationship("Review", back_populates="user")
 
