@@ -1,5 +1,3 @@
-from pickletools import pybytes
-
 import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -13,11 +11,8 @@ class UserCrud:
 
     @staticmethod
     async def create_user(db: AsyncSession, username: str, password: str):
-        # Генерация соли для bcrypt
-        salt = bcrypt.gensalt()
 
-        # Хэширование пароля с добавлением соли
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
         new_user = User(username=username, hashed_password=hashed_password)
         db.add(new_user)  # Создаёт нового пользователя и добавляет его в базу данных

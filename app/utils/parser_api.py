@@ -60,10 +60,10 @@ def make_meal_details(meal):
 Country: {meal['cuisine']}
 Category: {meal['category']}
 Time cooking: {meal['cooking_time']} minutes
-    
+
 Ingredients:
 {"\n".join(item for item in meal["ingredients"])}
-    
+
 Instructions:
 {meal["instructions"]}
 """.strip()
