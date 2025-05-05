@@ -8,7 +8,8 @@
 <body>
     <div class="form-container">
         <h2>Регистрация</h2>
-        <form action="dashboard.html" method="GET">
+        <div id="error-message" class="error-message"></div>
+        <form id="registerForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
                 <input type="text" id="username" name="username" required minlength="3">
@@ -26,7 +27,52 @@
 
             <button type="submit" class="btn">Зарегистрироваться</button>
         </form>
-        <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+        <p>Уже есть аккаунт? <a href="/login">Войти</a></p>
     </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password !== confirmPassword) {
+                document.getElementById('error-message').textContent = 'Пароли не совпадают';
+                return;
+            }
+
+            const formData = {
+                username: document.getElementById('username').value,
+                password: password
+            };
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                // Обработка JSON-ответа
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    data = { detail: "Неизвестная ошибка сервера" };
+                }
+
+                if (response.ok) {
+                    window.location.href = `/dashboard.html?username=${encodeURIComponent(formData.username)}`;
+                } else {
+                    document.getElementById('error-message').textContent = data.detail || "Ошибка регистрации";
+                }
+            } catch (err) {
+                document.getElementById('error-message').textContent = 'Ошибка соединения';
+            }
+        });
+    </script>
 </body>
 </html>

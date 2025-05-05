@@ -13,11 +13,10 @@
             <p>Данные из формы:</p>
             <p>Имя: <span id="url-username"></span></p>
         </div>
-        <a href="login.html" class="btn btn-logout">Выйти</a>
+        <a href="/login" class="btn btn-logout">Выйти</a>
     </div>
 
     <script>
-        // Показывает имя пользователя из URL (параметр ?username=...)
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username');
         document.getElementById('url-username').textContent = username || 'Гость';

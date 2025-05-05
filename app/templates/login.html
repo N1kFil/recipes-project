@@ -8,7 +8,8 @@
 <body>
     <div class="form-container">
         <h2>Вход</h2>
-        <form action="dashboard.html" method="GET">
+        <div id="error-message" class="error-message"></div>
+        <form id="loginForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
                 <input type="text" id="username" name="username" required>
@@ -21,7 +22,44 @@
 
             <button type="submit" class="btn">Войти</button>
         </form>
-        <p>Нет аккаунта? <a href="register">Зарегистрироваться</a></p>
+        <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams(formData)
+                });
+
+                // Обработка JSON-ответа
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    data = { detail: "Неизвестная ошибка сервера" };
+                }
+
+                if (response.ok) {
+                    window.location.href = `/dashboard.html?username=${encodeURIComponent(formData.username)}`;
+                } else {
+                    document.getElementById('error-message').textContent = data.detail || "Ошибка авторизации";
+                }
+            } catch (err) {
+                document.getElementById('error-message').textContent = 'Ошибка соединения';
+            }
+        });
+    </script>
 </body>
 </html>
