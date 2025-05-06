@@ -1,94 +1,106 @@
+/* Стили для формы */
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    background-color: #eef2f7;
     margin: 0;
+    padding: 0;
 }
 
 .form-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    width: 300px;
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
     text-align: center;
-    color: #333;
-    margin-bottom: 1.5rem;
+    margin-bottom: 20px;
+    color: #333333;
 }
 
 .input-group {
-    margin-bottom: 1rem;
+    margin-bottom: 20px;
 }
 
 label {
     display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
 }
 
-input {
+input[type="text"],
+input[type="password"] {
     width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
     box-sizing: border-box;
+    transition: border-color 0.3s ease;
 }
 
 input:focus {
+    border-color: #4CAF50;
     outline: none;
-    border-color: #007bff;
 }
 
 .btn {
     width: 100%;
-    padding: 0.75rem;
-    background: #007bff;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 5px;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
-    text-align: center;
-    text-decoration: none;
-    display: block;
+    transition: background-color 0.3s ease;
 }
 
 .btn:hover {
-    background: #0056b3;
+    background-color: #45a049;
 }
 
-.btn-logout {
-    background: #dc3545;
-    margin-top: 2rem;
+/* Сообщения */
+.success-message,
+.error-message {
+    display: none;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    text-align: center;
 }
 
-.btn-logout:hover {
-    background: #bb2d3b;
+.success-message.show {
+    display: block;
+    color: #155724;
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
 }
 
+.error-message.show {
+    display: block;
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+}
+
+/* Ссылка под формой */
 p {
     text-align: center;
-    margin-top: 1rem;
+    margin-top: 16px;
 }
 
 a {
-    color: #007bff;
+    color: #4CAF50;
     text-decoration: none;
 }
 
 a:hover {
     text-decoration: underline;
-}
-
-.dashboard-content {
-    text-align: center;
-    color: #666;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
 }

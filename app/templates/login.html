@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Вход</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="form-container">
         <h2>Вход</h2>
-        <form action="dashboard.html" method="GET">
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+        <form id="loginForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
                 <input type="text" id="username" name="username" required>
@@ -21,7 +23,63 @@
 
             <button type="submit" class="btn">Войти</button>
         </form>
-        <p>Нет аккаунта? <a href="register">Зарегистрироваться</a></p>
+        <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            const errorBox = document.getElementById('error-message');
+            const successBox = document.getElementById('success-message');
+            errorBox.textContent = '';
+            successBox.textContent = '';
+            errorBox.classList.remove('show');
+            successBox.classList.remove('show');
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successBox.textContent = 'Авторизация прошла успешно! Перенаправляем...';
+                    successBox.classList.add('show');
+
+                    setTimeout(() => {
+                        window.location.href = '/recipes';
+                    }, 1500);
+                } else {
+                    // Обрабатываем ошибки
+                    if (data.detail && Array.isArray(data.detail)) {
+                        const errorMessages = data.detail.map(err => {
+                            const field = err.loc.join('.');
+                            return `${field}: ${err.msg}`;
+                        }).join('\n');
+                        errorBox.textContent = errorMessages;
+                        errorBox.classList.add('show');
+                    } else {
+                        errorBox.textContent = data.detail || "Ошибка авторизации";
+                        errorBox.classList.add('show');
+                    }
+                }
+            } catch (err) {
+                errorBox.textContent = 'Ошибка соединения с сервером';
+                errorBox.classList.add('show');
+                console.error('Ошибка:', err);
+            }
+        });
+    </script>
 </body>
 </html>
