@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import User, Recipe, Review
 from sqlalchemy import and_
-
 from sqlalchemy import delete
+from sqlalchemy.orm import selectinload
 
 # Инициализация bcrypt
 # для bcrypt соль генерируется автоматически в процессе хэширования
@@ -15,11 +15,8 @@ class UserCrud:
 
     @staticmethod
     async def create_user(db: AsyncSession, username: str, password: str):
-        # Генерация соли для bcrypt
-        salt = bcrypt.gensalt()
 
-        # Хэширование пароля с добавлением соли
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
         new_user = User(username=username, hashed_password=hashed_password)
         db.add(new_user)  # Создаёт нового пользователя и добавляет его в базу данных
@@ -50,7 +47,7 @@ class UserCrud:
 class RecipeCrud:
 
     @staticmethod
-    async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str):
+    async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str, cooking_time: int):
         new_recipe = Recipe(
             title=title,
             description=description,
@@ -59,7 +56,7 @@ class RecipeCrud:
             average_rating=0.0,
             ratings_count=0,
             giga_chat_description=giga_chat_description,
-            cooking_time=0
+            cooking_time=cooking_time
         )
         db.add(new_recipe)
         await db.commit()
@@ -68,7 +65,7 @@ class RecipeCrud:
 
     @staticmethod
     async def get_recipe(db: AsyncSession, recipe_id: int):
-        query = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
+        query = await db.execute(select(Recipe).where(Recipe.id == recipe_id).options(selectinload(Recipe.reviews)))
         return query.scalars().first()
 
     @staticmethod

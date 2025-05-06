@@ -193,7 +193,8 @@ async def save_recipe(data):
 		try:
 
 			await RecipeCrud.create_recipe(db=db, title=data['title'], description=info,
-			                               cuisine=data['cuisine'], giga_chat_description=short_info)
+			                               cuisine=data['cuisine'][0], giga_chat_description=short_info,
+			                               cooking_time=data['timem'])
 
 			print(f"Успешно сохранено")
 			return True

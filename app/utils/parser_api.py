@@ -60,10 +60,10 @@ def make_meal_details(meal):
 Country: {meal['cuisine']}
 Category: {meal['category']}
 Time cooking: {meal['cooking_time']} minutes
-    
+
 Ingredients:
 {"\n".join(item for item in meal["ingredients"])}
-    
+
 Instructions:
 {meal["instructions"]}
 """.strip()
@@ -81,7 +81,8 @@ async def main():
 
         async for db in get_db():
             await RecipeCrud.create_recipe(db=db, title=meal['title'], description=info,
-                                           cuisine=meal['cuisine'], giga_chat_description=short_info)
+                                           cuisine=meal['cuisine'], giga_chat_description=short_info,
+                                           cooking_time=meal['cooking_time'])
 
         print("Добавил рецепт в базу")
 

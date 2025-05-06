@@ -1,96 +1,115 @@
-from fastapi import FastAPI, Depends, HTTPException
+import os
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Depends, HTTPException, APIRouter, Request, Query, status
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.database import async_session, engine, Base
+from sqlalchemy import select
+from typing import List
+from app.database.database import async_session, engine, Base, get_db
+from app.database.models import Recipe, User
 from app.database.crud import UserCrud, RecipeCrud
+from app.schemas import RecipeBase, ReviewBase, ReviewResponse, UserCreate, UserResponse
 import uvicorn
-from app.database.database import get_db
-from typing import Optional
-from fastapi import Query
 
-from fastapi import APIRouter
-
-router = APIRouter()
-app = FastAPI()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-@app.get("/")
-async def read_root():
-    return {"message": "Welcome to the Recipes API!"}
-
-
-# Создать таблицы при старте приложения
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    yield
 
-# Регистрация пользователя создает нового пользователя в БД
-@app.post("/register")
-async def register(username: str, password: str, db: AsyncSession = Depends(get_db)):
-    user = await UserCrud.create_user(db, username, password)
-    return {"message": "User created", "user_id": user.id}
 
-# Авторизация пользователя Если введены правильные данные — успешный ответ с user_id
+router = APIRouter()
+app = FastAPI(lifespan=lifespan)
+templates = Jinja2Templates(directory=f"{BASE_DIR}/app/templates")
+app.mount("/static", StaticFiles(directory=f"{BASE_DIR}/app/static/"), name="static")
+
+
+@app.get("/", response_class=RedirectResponse)
+async def root():
+    return RedirectResponse("/login")
+
+
+@app.get("/register", response_class=HTMLResponse)
+async def register_get(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+@app.post("/register", response_model=UserResponse)
+async def register_post(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+    existing_user = await UserCrud.get_user_by_username(db, user_data.username)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists"
+        )
+    new_user = await UserCrud.create_user(
+        db=db,
+        username=user_data.username,
+        password=user_data.password
+    )
+    return new_user
+
+@app.get("/login", response_class=HTMLResponse)
+async def login_get(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
 @app.post("/login")
-async def login(username: str, password: str, db: AsyncSession = Depends(get_db)):
+async def login_post(username: str, password: str, db: AsyncSession = Depends(get_db)):
     user = await UserCrud.authenticate_user(db, username, password)
     if not user:
-        raise HTTPException(status_code=400, detail="Invalid username or password")
-    return {"message": "Login successful", "user_id": user.id}
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials"
+        )
+    return {"message": "Login successful"}
 
-# Создание рецепта в бд
-@app.post("/recipes")
-async def create_recipe(title: str, description: str, cuisine: str, giga_chat_description: str, cooking_time: int, db: AsyncSession = Depends(get_db)):
-    recipe = await RecipeCrud.create_recipe(db, title, description, cuisine, giga_chat_description)
-    return {"message": "Recipe created", "recipe_id": recipe.id}
 
-# Получение рецепта по ID, Если он найден — возвращает подробную информацию о рецепте инчаче 404
-@app.get("/recipes/{recipe_id}")
-async def get_recipe(recipe_id: int, db: AsyncSession = Depends(get_db)):
+@app.get("/recipes", response_model=List[RecipeBase])
+async def get_all_recipes(db: AsyncSession = Depends(get_db)):
+    return await RecipeCrud.get_recipes_by_filters(db)
+
+
+@app.get("/recipes/popular", response_model=List[RecipeBase])
+async def get_popular_recipes(
+        db: AsyncSession = Depends(get_db),
+        limit: int = Query(10, ge=1)
+):
+    query = select(Recipe).order_by(Recipe.average_rating.desc()).limit(limit)
+    result = await db.execute(query)
+    return result.scalars().all()
+
+
+@app.get("/recipes/cuisine/{cuisine}", response_model=List[RecipeBase])
+async def get_recipes_by_cuisine(
+        cuisine: str,
+        db: AsyncSession = Depends(get_db)
+):
+    return await RecipeCrud.get_recipes_by_cuisine(db, cuisine=cuisine)
+
+
+@app.get("/recipes/time/{max_cooking_time}", response_model=List[RecipeBase])
+async def get_recipes_by_time(
+        max_cooking_time: int,
+        db: AsyncSession = Depends(get_db)
+):
+    return await RecipeCrud.get_recipes_by_filters(db, max_cooking_time=max_cooking_time)
+
+
+@app.get("/recipes/{recipe_id}", response_model=RecipeBase)
+async def get_recipe_details(
+        recipe_id: int,
+        db: AsyncSession = Depends(get_db)
+):
     recipe = await RecipeCrud.get_recipe(db, recipe_id)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
-    return {
-        "id": recipe.id,
-        "title": recipe.title,
-        "description": recipe.description,
-        "cuisine": recipe.cuisine,
-        "average_rating": recipe.average_rating,
-        "ratings_count": recipe.ratings_count
-    }
-
-# Добавление отзыва на рецепт от пользователя
-@app.post("/recipes/{recipe_id}/review")
-async def add_review(recipe_id: int, user_id: int, rating: int, text: str, db: AsyncSession = Depends(get_db)):
-    review = await RecipeCrud.add_review(db, recipe_id, user_id, rating, text)
-    return {"message": "Review added", "review_id": review.id}
-
-
-@app.get("/recipes_f/")
-async def get_recipes(
-    cuisine: Optional[str] = Query(None),
-    max_cooking_time: Optional[int] = Query(None),
-    db: AsyncSession = Depends(get_db)
-):
-    recipes = await RecipeCrud.get_recipes_by_filters(db, cuisine, max_cooking_time)
-    return [
-        {
-            "id": recipe.id,
-            "title": recipe.title,
-            "description": recipe.description,
-            "cuisine": recipe.cuisine,
-            "cooking_time": recipe.cooking_time,
-            "average_rating": recipe.average_rating,
-            "ratings_count": recipe.ratings_count
-        }
-        for recipe in recipes
-    ]
-@router.delete("/recipes/clear_all")
-async def clear_recipes(db: AsyncSession = Depends(get_db)):
-    await RecipeCrud.clear_recipes_table(db)
-    return {"message": "All recipes deleted"}
-app.include_router(router)
+    return recipe
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=5436)
+    uvicorn.run("main:app", host="localhost", port=8000, reload=True)
