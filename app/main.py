@@ -47,26 +47,23 @@ async def register_post(user_data: UserCreate, db: AsyncSession = Depends(get_db
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists"
         )
-    new_user = await UserCrud.create_user(
-        db=db,
-        username=user_data.username,
-        password=user_data.password
-    )
-    return new_user
+    await UserCrud.create_user(db=db, username=user_data.username, password=user_data.password)
+
+    return RedirectResponse("/recipes", status_code=302)
 
 @app.get("/login", response_class=HTMLResponse)
 async def login_get(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 @app.post("/login")
-async def login_post(username: str, password: str, db: AsyncSession = Depends(get_db)):
-    user = await UserCrud.authenticate_user(db, username, password)
+async def login_post(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
+    user = await UserCrud.authenticate_user(db, user_data.username, user_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials"
         )
-    return {"message": "Login successful"}
+    return RedirectResponse("/recipes", status_code=302)
 
 
 @app.get("/recipes", response_model=List[RecipeBase])

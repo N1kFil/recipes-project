@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Вход</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="form-container">
         <h2>Вход</h2>
         <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
         <form id="loginForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
@@ -34,30 +35,49 @@
                 password: document.getElementById('password').value
             };
 
+            const errorBox = document.getElementById('error-message');
+            const successBox = document.getElementById('success-message');
+            errorBox.textContent = '';
+            successBox.textContent = '';
+            errorBox.classList.remove('show');
+            successBox.classList.remove('show');
+
             try {
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
-                    body: new URLSearchParams(formData)
+                    body: JSON.stringify(formData)
                 });
 
-                // Обработка JSON-ответа
-                let data;
-                try {
-                    data = await response.json();
-                } catch {
-                    data = { detail: "Неизвестная ошибка сервера" };
-                }
+                const data = await response.json();
 
                 if (response.ok) {
-                    window.location.href = `/dashboard.html?username=${encodeURIComponent(formData.username)}`;
+                    successBox.textContent = 'Авторизация прошла успешно! Перенаправляем...';
+                    successBox.classList.add('show');
+
+                    setTimeout(() => {
+                        window.location.href = '/recipes';
+                    }, 1500);
                 } else {
-                    document.getElementById('error-message').textContent = data.detail || "Ошибка авторизации";
+                    // Обрабатываем ошибки
+                    if (data.detail && Array.isArray(data.detail)) {
+                        const errorMessages = data.detail.map(err => {
+                            const field = err.loc.join('.');
+                            return `${field}: ${err.msg}`;
+                        }).join('\n');
+                        errorBox.textContent = errorMessages;
+                        errorBox.classList.add('show');
+                    } else {
+                        errorBox.textContent = data.detail || "Ошибка авторизации";
+                        errorBox.classList.add('show');
+                    }
                 }
             } catch (err) {
-                document.getElementById('error-message').textContent = 'Ошибка соединения';
+                errorBox.textContent = 'Ошибка соединения с сервером';
+                errorBox.classList.add('show');
+                console.error('Ошибка:', err);
             }
         });
     </script>
