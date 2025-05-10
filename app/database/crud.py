@@ -94,6 +94,11 @@ class RecipeCrud:
         return new_review
 
     @staticmethod
+    async def get_popular_recipes(db: AsyncSession, limit: int = 10):
+        query = await db.execute(select(Recipe).order_by(Recipe.average_rating.desc()).limit(limit))
+        return query.scalars().all()
+
+    @staticmethod
     async def get_recipes_by_filters(db: AsyncSession, cuisine: str = None, max_cooking_time: int = None):
         query = select(Recipe)
         filters = []

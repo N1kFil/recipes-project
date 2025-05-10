@@ -72,36 +72,22 @@ async def get_all_recipes(db: AsyncSession = Depends(get_db)):
 
 
 @app.get("/recipes/popular", response_model=List[RecipeBase])
-async def get_popular_recipes(
-        db: AsyncSession = Depends(get_db),
-        limit: int = Query(10, ge=1)
-):
-    query = select(Recipe).order_by(Recipe.average_rating.desc()).limit(limit)
-    result = await db.execute(query)
-    return result.scalars().all()
+async def get_popular_recipes(db: AsyncSession = Depends(get_db), limit: int = Query(10, ge=1)):
+    return await RecipeCrud.get_popular_recipes(db, limit=limit)
 
 
 @app.get("/recipes/cuisine/{cuisine}", response_model=List[RecipeBase])
-async def get_recipes_by_cuisine(
-        cuisine: str,
-        db: AsyncSession = Depends(get_db)
-):
+async def get_recipes_by_cuisine(cuisine: str, db: AsyncSession = Depends(get_db)):
     return await RecipeCrud.get_recipes_by_cuisine(db, cuisine=cuisine)
 
 
 @app.get("/recipes/time/{max_cooking_time}", response_model=List[RecipeBase])
-async def get_recipes_by_time(
-        max_cooking_time: int,
-        db: AsyncSession = Depends(get_db)
-):
+async def get_recipes_by_time(max_cooking_time: int, db: AsyncSession = Depends(get_db)):
     return await RecipeCrud.get_recipes_by_filters(db, max_cooking_time=max_cooking_time)
 
 
 @app.get("/recipes/{recipe_id}", response_model=RecipeBase)
-async def get_recipe_details(
-        recipe_id: int,
-        db: AsyncSession = Depends(get_db)
-):
+async def get_recipe_details(recipe_id: int, db: AsyncSession = Depends(get_db)):
     recipe = await RecipeCrud.get_recipe(db, recipe_id)
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
