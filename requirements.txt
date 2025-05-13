@@ -41,3 +41,6 @@ watchfiles~=1.0.4
 gigachat
 aiohttp
 greenlet
+pyjwt
+pydantic-settings
+pathlib

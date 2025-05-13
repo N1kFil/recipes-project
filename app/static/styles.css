@@ -68,26 +68,42 @@ input:focus {
 .success-message,
 .error-message {
     display: none;
+    opacity: 0;
     padding: 12px;
     margin-bottom: 16px;
     border-radius: 8px;
     font-weight: bold;
     font-size: 15px;
     text-align: center;
+    transition: opacity 0.3s ease;
+}
+
+.success-message.show,
+.error-message.show {
+    display: block;
+    opacity: 1;
 }
 
 .success-message.show {
-    display: block;
     color: #155724;
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
 }
 
 .error-message.show {
-    display: block;
     color: #721c24;
     background-color: #f8d7da;
     border: 1px solid #f5c6cb;
+}
+
+.success-message::before {
+    content: "✔️ ";
+    margin-right: 8px;
+}
+
+.error-message::before {
+    content: "❌ ";
+    margin-right: 8px;
 }
 
 /* Ссылка под формой */
