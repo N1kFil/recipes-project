@@ -53,24 +53,26 @@
 
                 const data = await response.json();
 
-                if (data.success) {
+                if (response.ok) {
                     successBox.textContent = 'Авторизация прошла успешно! Перенаправляем...';
                     successBox.classList.add('show');
 
                     setTimeout(() => {
-                        window.location.href = data.redirect_url || '/recipes';
+                        window.location.href = '/recipes';
                     }, 1500);
                 } else {
+                    // Обрабатываем ошибки
                     if (data.detail && Array.isArray(data.detail)) {
                         const errorMessages = data.detail.map(err => {
                             const field = err.loc.join('.');
                             return `${field}: ${err.msg}`;
                         }).join('\n');
                         errorBox.textContent = errorMessages;
+                        errorBox.classList.add('show');
                     } else {
                         errorBox.textContent = data.detail || "Ошибка авторизации";
+                        errorBox.classList.add('show');
                     }
-                    errorBox.classList.add('show');
                 }
             } catch (err) {
                 errorBox.textContent = 'Ошибка соединения с сервером';
