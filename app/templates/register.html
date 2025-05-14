@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="form-container">
         <h2>Регистрация</h2>
-        <form action="dashboard.html" method="GET">
+        <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
+        <form id="registerForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
                 <input type="text" id="username" name="username" required minlength="3">
@@ -26,7 +28,78 @@
 
             <button type="submit" class="btn">Зарегистрироваться</button>
         </form>
-        <p>Уже есть аккаунт? <a href="login.html">Войти</a></p>
+        <p>Уже есть аккаунт? <a href="/login">Войти</a></p>
     </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const errorBox = document.getElementById('error-message');
+            const successBox = document.getElementById('success-message');
+            errorBox.textContent = '';
+            successBox.textContent = '';
+            errorBox.classList.remove('show');
+            successBox.classList.remove('show');
+
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (password !== confirmPassword) {
+                errorBox.textContent = 'Пароли не совпадают';
+                errorBox.classList.add('show');
+                return;
+            }
+
+            const formData = {
+                username: document.getElementById('username').value,
+                password: password
+            };
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    data = { detail: "Неизвестная ошибка сервера" };
+                }
+
+                if (response.ok) {
+                    successBox.textContent = 'Регистрация прошла успешно! Перенаправляем...';
+                    successBox.classList.add('show');
+
+                    // Используем data.redirect_url, если оно есть, иначе по умолчанию '/recipes'
+                    const redirectUrl = data.redirect_url || '/recipes';
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
+                } else {
+                    if (data.detail && Array.isArray(data.detail)) {
+                        const errorMessages = data.detail.map(err => {
+                            const field = err.loc.join('.');
+                            return `${field}: ${err.msg}`;
+                        }).join('\n');
+                        errorBox.textContent = errorMessages;
+                    } else {
+                        errorBox.textContent = data.detail || "Ошибка регистрации";
+                    }
+                    errorBox.classList.add('show');
+                }
+            } catch (err) {
+                errorBox.textContent = 'Ошибка соединения с сервером';
+                errorBox.classList.add('show');
+                console.error('Ошибка:', err);
+            }
+        });
+    </script>
 </body>
 </html>
