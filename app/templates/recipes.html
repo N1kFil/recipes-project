@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Рецепты</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-links">
+            <a href="/recipes">Все рецепты</a>
+            <a href="/recipes/popular">Популярные</a>
+            <a href="/logout">Выйти</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Фильтры -->
+        <div class="filters">
+            <input type="number" id="maxTime" placeholder="Макс. время (мин)">
+            <select id="cuisineFilter">
+                <option value="">Все кухни</option>
+                <option value="Итальянская">Итальянская</option>
+                <option value="Азиатская">Азиатская</option>
+                <option value="Русская">Русская</option>
+            </select>
+            <button class="btn" onclick="applyFilters()">Применить</button>
+        </div>
+
+        <!-- Список рецептов -->
+        <div class="recipe-list" id="recipeList"></div>
+
+        <!-- Популярные рецепты -->
+        <h3>Популярное</h3>
+        <div class="popular-recipes" id="popularRecipes"></div>
+    </div>
+
+    <script>
+        // Загрузка данных при открытии страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadRecipes('/recipes');
+            await loadPopularRecipes();
+        });
+
+        // Загрузка обычных рецептов
+        async function loadRecipes(url) {
+            try {
+                const response = await fetch(url);
+                const recipes = await response.json();
+                renderRecipes(recipes, 'recipeList');
+            } catch (err) {
+                console.error('Ошибка загрузки рецептов:', err);
+            }
+        }
+
+        // Загрузка популярных рецептов
+        async function loadPopularRecipes() {
+            try {
+                const response = await fetch('/recipes/popular?limit=5');
+                const recipes = await response.json();
+                renderRecipes(recipes, 'popularRecipes', true);
+            } catch (err) {
+                console.error('Ошибка загрузки популярных рецептов:', err);
+            }
+        }
+
+        // Отрисовка рецептов
+        function renderRecipes(recipes, containerId, isHorizontal = false) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            recipes.forEach(recipe => {
+                const recipeCard = `
+                    <div class="recipe-card ${isHorizontal ? 'horizontal' : ''}">
+                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}" alt="${recipe.title}">
+                        <div class="recipe-info">
+                            <h4>${recipe.title}</h4>
+                            <p>⏱️ ${recipe.cooking_time} мин</p>
+                            <p>⭐ ${recipe.rating || 'Нет оценок'}</p>
+                            <a href="/recipes/${recipe.id}">Подробнее</a>
+                        </div>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', recipeCard);
+            });
+        }
+
+        // Применение фильтров
+        function applyFilters() {
+            const maxTime = document.getElementById('maxTime').value;
+            const cuisine = document.getElementById('cuisineFilter').value;
+            let url = '/recipes';
+
+            if (maxTime || cuisine) {
+                url = `/recipes/time/${maxTime}?cuisine=${cuisine}`;
+            }
+
+            loadRecipes(url);
+        }
+    </script>
+</body>
+</html>
