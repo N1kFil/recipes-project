@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>Регистрация</title>
-    <link rel="stylesheet" href="../static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <div class="form-container">
         <h2>Регистрация</h2>
         <div id="error-message" class="error-message"></div>
+        <div id="success-message" class="success-message"></div>
         <form id="registerForm">
             <div class="input-group">
                 <label for="username">Имя пользователя:</label>
@@ -34,11 +35,19 @@
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const errorBox = document.getElementById('error-message');
+            const successBox = document.getElementById('success-message');
+            errorBox.textContent = '';
+            successBox.textContent = '';
+            errorBox.classList.remove('show');
+            successBox.classList.remove('show');
+
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm_password').value;
 
             if (password !== confirmPassword) {
-                document.getElementById('error-message').textContent = 'Пароли не совпадают';
+                errorBox.textContent = 'Пароли не совпадают';
+                errorBox.classList.add('show');
                 return;
             }
 
@@ -56,7 +65,6 @@
                     body: JSON.stringify(formData)
                 });
 
-                // Обработка JSON-ответа
                 let data;
                 try {
                     data = await response.json();
@@ -65,12 +73,31 @@
                 }
 
                 if (response.ok) {
-                    window.location.href = `/dashboard.html?username=${encodeURIComponent(formData.username)}`;
+                    successBox.textContent = 'Регистрация прошла успешно! Перенаправляем...';
+                    successBox.classList.add('show');
+
+                    // Используем data.redirect_url, если оно есть, иначе по умолчанию '/recipes'
+                    const redirectUrl = data.redirect_url || '/recipes';
+
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1500);
                 } else {
-                    document.getElementById('error-message').textContent = data.detail || "Ошибка регистрации";
+                    if (data.detail && Array.isArray(data.detail)) {
+                        const errorMessages = data.detail.map(err => {
+                            const field = err.loc.join('.');
+                            return `${field}: ${err.msg}`;
+                        }).join('\n');
+                        errorBox.textContent = errorMessages;
+                    } else {
+                        errorBox.textContent = data.detail || "Ошибка регистрации";
+                    }
+                    errorBox.classList.add('show');
                 }
             } catch (err) {
-                document.getElementById('error-message').textContent = 'Ошибка соединения';
+                errorBox.textContent = 'Ошибка соединения с сервером';
+                errorBox.classList.add('show');
+                console.error('Ошибка:', err);
             }
         });
     </script>

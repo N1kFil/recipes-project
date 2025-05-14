@@ -1,18 +1,17 @@
-import bcrypt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.database.models import User, Recipe, Review
 from sqlalchemy import and_
 from sqlalchemy import delete
 from sqlalchemy.orm import selectinload
+from app.auth import utils as auth_utils
 
 
 class UserCrud:
 
     @staticmethod
     async def create_user(db: AsyncSession, username: str, password: str):
-
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        hashed_password = auth_utils.hash_password(password)
 
         new_user = User(username=username, hashed_password=hashed_password)
         db.add(new_user)  # Создаёт нового пользователя и добавляет его в базу данных
@@ -21,10 +20,10 @@ class UserCrud:
         return new_user
 
     @staticmethod  # Ищет пользователя по имени, проверяет пароль, сверяя его с захешированным паролем, возвращает пользователя если все правильно
-    async def authenticate_user(db: AsyncSession, username: str, password: str):
+    async def authenticate_user(db: AsyncSession, username: str, password: str) -> User | None:
         query = await db.execute(select(User).where(User.username == username))
         user = query.scalars().first()
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.hashed_password):
+        if user and auth_utils.validate_password(password, user.hashed_password):
             return user
         return None
 
@@ -42,7 +41,8 @@ class UserCrud:
 class RecipeCrud:
 
     @staticmethod
-    async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str, cooking_time: int):
+    async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str,
+                            cooking_time: int):
         new_recipe = Recipe(
             title=title,
             description=description,
@@ -108,6 +108,11 @@ class RecipeCrud:
 
         result = await db.execute(query)
         return result.scalars().all()
+
+    @staticmethod
+    async def get_popular_recipes(db: AsyncSession, limit: int = 10):
+        query = await db.execute(select(Recipe).order_by(Recipe.average_rating.desc()).limit(limit))
+        return query.scalars().all()
 
     @staticmethod
     async def clear_recipes_table(db: AsyncSession):
