@@ -7,42 +7,47 @@
 </head>
 <body>
     <nav class="navbar">
-        <div class="nav-links">
-            <a href="/recipes">Все рецепты</a>
-            <a href="/recipes/popular">Популярные</a>
-            <a href="/logout">Выйти</a>
+        <div class="nav-container">
+            <div class="nav-brand">🍳 RecipeApp</div>
+            <div class="nav-links">
+                <a href="/recipes">Все рецепты</a>
+                <a href="/recipes/popular">Популярные</a>
+                <a href="/logout" class="logout-btn">Выйти</a>
+            </div>
         </div>
     </nav>
 
-    <div class="container">
+    <div class="main-container">
         <!-- Фильтры -->
-        <div class="filters">
-            <input type="number" id="maxTime" placeholder="Макс. время (мин)">
-            <select id="cuisineFilter">
-                <option value="">Все кухни</option>
-                <option value="Итальянская">Итальянская</option>
-                <option value="Азиатская">Азиатская</option>
-                <option value="Русская">Русская</option>
-            </select>
-            <button class="btn" onclick="applyFilters()">Применить</button>
+        <div class="filters-container">
+            <div class="filter-group">
+                <input type="number" id="maxTime" placeholder="Макс. время (мин)" class="filter-input">
+                <select id="cuisineFilter" class="filter-select">
+                    <option value="">Все кухни</option>
+                    <option value="Итальянская">Итальянская</option>
+                    <option value="Азиатская">Азиатская</option>
+                    <option value="Русская">Русская</option>
+                </select>
+                <button class="filter-btn" onclick="applyFilters()">Применить фильтры</button>
+            </div>
         </div>
 
-        <!-- Список рецептов -->
-        <div class="recipe-list" id="recipeList"></div>
+        <!-- Основные рецепты -->
+        <h2 class="section-title">Все рецепты</h2>
+        <div class="recipe-grid" id="recipeList"></div>
 
         <!-- Популярные рецепты -->
-        <h3>Популярное</h3>
-        <div class="popular-recipes" id="popularRecipes"></div>
+        <h2 class="section-title">Популярное сейчас</h2>
+        <div class="popular-scroller" id="popularRecipes"></div>
     </div>
 
     <script>
-        // Загрузка данных при открытии страницы
+        // Прежний JavaScript код без изменений
         document.addEventListener('DOMContentLoaded', async () => {
             await loadRecipes('/recipes');
             await loadPopularRecipes();
         });
 
-        // Загрузка обычных рецептов
         async function loadRecipes(url) {
             try {
                 const response = await fetch(url);
@@ -53,7 +58,6 @@
             }
         }
 
-        // Загрузка популярных рецептов
         async function loadPopularRecipes() {
             try {
                 const response = await fetch('/recipes/popular?limit=5');
@@ -64,7 +68,6 @@
             }
         }
 
-        // Отрисовка рецептов
         function renderRecipes(recipes, containerId, isHorizontal = false) {
             const container = document.getElementById(containerId);
             container.innerHTML = '';
@@ -72,12 +75,14 @@
             recipes.forEach(recipe => {
                 const recipeCard = `
                     <div class="recipe-card ${isHorizontal ? 'horizontal' : ''}">
-                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}" alt="${recipe.title}">
-                        <div class="recipe-info">
-                            <h4>${recipe.title}</h4>
-                            <p>⏱️ ${recipe.cooking_time} мин</p>
-                            <p>⭐ ${recipe.rating || 'Нет оценок'}</p>
-                            <a href="/recipes/${recipe.id}">Подробнее</a>
+                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}" alt="${recipe.title}" class="recipe-image">
+                        <div class="recipe-content">
+                            <h3 class="recipe-title">${recipe.title}</h3>
+                            <div class="recipe-meta">
+                                <span class="time">⏱ ${recipe.cooking_time} мин</span>
+                                <span class="rating">⭐ ${recipe.rating || 'Нет оценок'}</span>
+                            </div>
+                            <a href="/recipes/${recipe.id}" class="details-link">Смотреть рецепт →</a>
                         </div>
                     </div>
                 `;
@@ -85,7 +90,6 @@
             });
         }
 
-        // Применение фильтров
         function applyFilters() {
             const maxTime = document.getElementById('maxTime').value;
             const cuisine = document.getElementById('cuisineFilter').value;
