@@ -16,6 +16,7 @@ class RecipeBase(BaseModel):
     ratings_count: int
     giga_chat_description: Optional[str]
     cooking_time: Optional[int]
+    image_url: Optional[str]
 
     class Config:
         from_attributes = True
