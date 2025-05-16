@@ -42,7 +42,7 @@ class RecipeCrud:
 
     @staticmethod
     async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str,
-                            cooking_time: int):
+                            cooking_time: int, image_url: str = None):
         new_recipe = Recipe(
             title=title,
             description=description,
@@ -51,7 +51,8 @@ class RecipeCrud:
             average_rating=0.0,
             ratings_count=0,
             giga_chat_description=giga_chat_description,
-            cooking_time=cooking_time
+            cooking_time=cooking_time,
+            image_url=image_url
         )
         db.add(new_recipe)
         await db.commit()

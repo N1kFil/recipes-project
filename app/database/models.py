@@ -25,6 +25,7 @@ class Recipe(Base):
     ratings_count = Column(Integer, default=0)  # количество оценок
     giga_chat_description = Column(String, nullable=True)  # краткое описание с giga chat
     cooking_time = Column(Integer, nullable=True)  # время готовки в минутах
+    image_url = Column(String, nullable=True)
 
     reviews = relationship("Review", back_populates="recipe")
 
