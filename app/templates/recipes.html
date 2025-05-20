@@ -42,7 +42,6 @@
     </div>
 
     <script>
-        // Прежний JavaScript код без изменений
         document.addEventListener('DOMContentLoaded', async () => {
             await loadRecipes('/recipes');
             await loadPopularRecipes();
@@ -75,14 +74,16 @@
             recipes.forEach(recipe => {
                 const recipeCard = `
                     <div class="recipe-card ${isHorizontal ? 'horizontal' : ''}">
-                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}" alt="${recipe.title}" class="recipe-image">
+                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}"
+                             alt="${recipe.title}"
+                             class="recipe-image">
                         <div class="recipe-content">
                             <h3 class="recipe-title">${recipe.title}</h3>
                             <div class="recipe-meta">
                                 <span class="time">⏱ ${recipe.cooking_time} мин</span>
-                                <span class="rating">⭐ ${recipe.rating || 'Нет оценок'}</span>
+                                <span class="rating">⭐ ${recipe.average_rating?.toFixed(1) || 'Нет оценок'}</span>
                             </div>
-                            <a href="/recipes/${recipe.id}" class="details-link">Смотреть рецепт →</a>
+                            <a href="/recipe/${recipe.id}" class="details-link">Смотреть рецепт →</a>
                         </div>
                     </div>
                 `;

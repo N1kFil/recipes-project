@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ recipe.title }}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">🍳 RecipeApp</div>
+            <div class="nav-links">
+                <a href="/recipes">Все рецепты</a>
+                <a href="/recipes/popular">Популярные</a>
+                <a href="/logout" class="logout-btn">Выйти</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="recipe-detail">
+            <h1 class="recipe-title">{{ recipe.title }}</h1>
+
+            <div class="recipe-header">
+                <img src="{{ recipe.image_url or '/static/default-recipe.jpg' }}"
+                     alt="{{ recipe.title }}"
+                     class="recipe-main-image">
+
+                <div class="recipe-info">
+                    <div class="info-block">
+                        <span class="info-label">⏱ Время приготовления:</span>
+                        <span class="info-value">{{ recipe.cooking_time }} мин</span>
+                    </div>
+                    <div class="info-block">
+                        <span class="info-label">⭐ Рейтинг:</span>
+                        <span class="info-value">{{ recipe.average_rating|float|round(1) if recipe.average_rating else 'Нет оценок' }}</span>
+                    </div>
+                    <div class="info-block">
+                        <span class="info-label">🍽 Кухня:</span>
+                        <span class="info-value">{{ recipe.cuisine }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recipe-section">
+                <h2>Описание</h2>
+                <div class="description">
+                    {{ recipe.description or "Описание отсутствует" }}
+                </div>
+            </div>
+
+            {% if recipe.giga_chat_description %}
+            <div class="recipe-section">
+                <h2>Рекомендация от шеф-повара</h2>
+                <div class="giga-chat">
+                    {{ recipe.giga_chat_description }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
