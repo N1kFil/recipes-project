@@ -20,15 +20,6 @@
         <div class="recipe-detail" id="recipeContainer">
             <!-- Основной контент рецепта -->
             <div class="loader">Загрузка рецепта...</div>
-
-            <!-- Блок отзывов -->
-            <div class="reviews-section">
-                <h2>Отзывы</h2>
-                <button class="add-review-btn" onclick="showReviewModal()">✏️ Оставить отзыв</button>
-                <div class="reviews-container" id="reviewsContainer">
-                    <!-- Отзывы будут загружены здесь -->
-                </div>
-            </div>
         </div>
     </div>
 
@@ -44,7 +35,7 @@
                 </div>
                 <div class="form-group">
                     <label>Комментарий:</label>
-                    <textarea id="comment" rows="4" required></textarea>
+                    <textarea id="text" rows="4" required></textarea>
                 </div>
                 <button type="submit" class="submit-btn">Отправить</button>
             </form>
@@ -115,6 +106,13 @@
                         ${recipe.giga_chat_description}
                     </div>
                 </div>` : ''}
+
+                <!-- Блок отзывов ПОД ОПИСАНИЕМ -->
+                <div class="reviews-section">
+                    <h2>Отзывы</h2>
+                    <button class="add-review-btn" onclick="showReviewModal()">✏️ Оставить отзыв</button>
+                    <div class="reviews-container" id="reviewsContainer"></div>
+                </div>
             `;
         }
 
@@ -138,7 +136,7 @@
                         <span class="user-id">Пользователь ${review.user_id}</span>
                         <span class="review-rating">⭐ ${review.rating}</span>
                     </div>
-                    <div class="review-comment">${review.comment}</div>
+                    <div class="review-comment">${review.text}</div>
                     <div class="review-date">${new Date(review.created_at).toLocaleDateString()}</div>
                 </div>
             `).join('');
@@ -157,11 +155,12 @@
             const recipeId = window.location.pathname.split('/').pop();
             const reviewData = {
                 rating: parseInt(document.getElementById('rating').value),
-                comment: document.getElementById('comment').value
+                text: document.getElementById('text').value
             };
 
             try {
-                const response = await fetch(`/api/addreview/${recipeId}`, {
+                // Исправленный URL с параметром запроса
+                const response = await fetch(`/api/addreview?recipe_id=${recipe_id}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -169,12 +168,18 @@
                     body: JSON.stringify(reviewData)
                 });
 
+                if (response.redirected) {
+                    window.location.href = response.url; // Обработка редиректа на логин
+                    return;
+                }
+
                 if (response.ok) {
                     closeReviewModal();
                     await loadReviews(recipeId);
                     document.getElementById('reviewForm').reset();
                 } else {
-                    alert('Ошибка при отправке отзыва');
+                    const errorData = await response.json();
+                    alert(`Ошибка: ${errorData.detail}`);
                 }
             } catch (error) {
                 console.error('Ошибка:', error);
