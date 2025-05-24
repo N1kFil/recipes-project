@@ -76,8 +76,7 @@
                     successBox.textContent = 'Регистрация прошла успешно! Перенаправляем...';
                     successBox.classList.add('show');
 
-                    // Используем data.redirect_url, если оно есть, иначе по умолчанию '/recipes'
-                    const redirectUrl = data.redirect_url || '/recipes';
+                    const redirectUrl = data.redirect_url || '/';
 
                     setTimeout(() => {
                         window.location.href = redirectUrl;

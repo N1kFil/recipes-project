@@ -58,7 +58,7 @@
                     successBox.classList.add('show');
 
                     setTimeout(() => {
-                        window.location.href = data.redirect_url || '/recipes';
+                        window.location.href = data.redirect_url || '/';
                     }, 1500);
                 } else {
                     if (data.detail && Array.isArray(data.detail)) {
