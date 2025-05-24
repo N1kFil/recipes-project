@@ -34,11 +34,9 @@ def setup_driver():
 
 
 def get_recipe_links(driver, max_links=1):
-    # print("Загружаю страницу с рецептами...")
     driver.get("https://www.allrecipes.com/")
     time.sleep(random.uniform(3, 5))
 
-    # Прокрутка для загрузки контента
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight/2)")
     time.sleep(1)
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight)")
@@ -63,7 +61,6 @@ def get_recipe_links(driver, max_links=1):
             print(f"Ошибка при поиске по селектору {selector}: {str(e)}")
             continue
 
-    # Случайный выбор рецептов
     links = list(links)
     random.shuffle(links)
     return links[:max_links]
@@ -115,7 +112,8 @@ def extract_recipe_data(driver):
                             time_str = entry.get('totalTime', '')
                             time_minutes = parse_iso8601_duration(time_str)
                             steps = extract_steps(entry.get('recipeInstructions', []))
-                            return ingredients, cuisine, time_minutes, steps
+                            image = entry.get('image', {}).get('url') if isinstance(entry.get('image'), dict) else entry.get('image', '')
+                            return ingredients, cuisine, time_minutes, steps, image
             elif isinstance(data_json, dict):
                 type_field = data_json.get('@type')
                 if isinstance(type_field, list) and 'Recipe' in type_field or type_field == 'Recipe':
@@ -124,11 +122,12 @@ def extract_recipe_data(driver):
                     time_str = data_json.get('totalTime', '')
                     time_minutes = parse_iso8601_duration(time_str)
                     steps = extract_steps(data_json.get('recipeInstructions', []))
-                    return ingredients, cuisine, time_minutes, steps
+                    image = data_json.get('image', {}).get('url') if isinstance(data_json.get('image'), dict) else data_json.get('image', '')
+                    return ingredients, cuisine, time_minutes, steps, image
 
         except json.JSONDecodeError:
             continue
-    return [], 'other', 0, []
+    return [], 'other', 0, [], ''
 
 
 def parse_recipe_page(driver, url):
@@ -144,10 +143,10 @@ def parse_recipe_page(driver, url):
 			'ingredients': [],
 			'steps':[],
 			'timem': 0,
-			'url': url
+			'url': url,
+			'image_url': ""
 		}
 
-		# 1. Парсинг описания (новый селектор)
 		try:
 			data['description'] = driver.find_element(
 				By.CSS_SELECTOR, 'p.article-subheading, div.recipe-summary-description, p.recipe-summary__description'
@@ -156,7 +155,7 @@ def parse_recipe_page(driver, url):
 			print(f"Не найдено описание: {str(e)}")
 
 		try:
-			data['ingredients'], data['cuisine'], data['timem'], data['steps'] = extract_recipe_data(driver)
+			data['ingredients'], data['cuisine'], data['timem'], data['steps'], data['image_url'] = extract_recipe_data(driver)
 		except Exception as e:
 			print(f"Не найдены дополнительные сведения: {str(e)}")
 
@@ -194,7 +193,7 @@ async def save_recipe(data):
 
 			await RecipeCrud.create_recipe(db=db, title=data['title'], description=info,
 			                               cuisine=data['cuisine'][0], giga_chat_description=short_info,
-			                               cooking_time=data['timem'])
+			                               cooking_time=data['timem'], image_url=data['image_url'])
 
 			print(f"Успешно сохранено")
 			return True
@@ -209,11 +208,8 @@ async def main():
 	driver = setup_driver()
 	try:
 		links = get_recipe_links(driver, max_links=n)
-		# print(f"\nНайдено рецептов: {len(links)}")
 
 		for i, link in enumerate(links, 1):
-		# 	print(f"\nОбработка рецепта {i}/{len(links)}")
-		# 	print(f"URL: {link}")
 
 			data = parse_recipe_page(driver, link)
 			if data:

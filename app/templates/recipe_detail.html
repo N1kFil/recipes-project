@@ -10,8 +10,7 @@
         <div class="nav-container">
             <div class="nav-brand">🍳 RecipeApp</div>
             <div class="nav-links">
-                <a href="/recipes">Все рецепты</a>
-                <a href="/recipes/popular">Популярные</a>
+                <a href="/">Все рецепты</a>
                 <a href="/logout" class="logout-btn">Выйти</a>
             </div>
         </div>
@@ -32,7 +31,7 @@
 
         async function loadRecipe(recipeId) {
             try {
-                const response = await fetch(`/api/recipes/${recipeId}`);
+                const response = await fetch(`/api/recipe/${recipeId}`);
                 if (!response.ok) throw new Error('Рецепт не найден');
 
                 const recipe = await response.json();
@@ -82,7 +81,7 @@
 
                 ${recipe.giga_chat_description ? `
                 <div class="recipe-section">
-                    <h2>Рекомендация от шеф-повара</h2>
+                    <h2>Краткое описание из GigaChat</h2>
                     <div class="giga-chat">
                         ${recipe.giga_chat_description}
                     </div>

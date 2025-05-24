@@ -4,14 +4,23 @@
     <meta charset="UTF-8">
     <title>Рецепты</title>
     <link rel="stylesheet" href="/static/styles.css">
+    <style>
+        .recipe-card {
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .recipe-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">🍳 RecipeApp</div>
             <div class="nav-links">
-                <a href="/recipes">Все рецепты</a>
-                <a href="/recipes/popular">Популярные</a>
                 <a href="/logout" class="logout-btn">Выйти</a>
             </div>
         </div>
@@ -69,13 +78,17 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            await loadRecipes('/recipes');
+            await loadRecipes('/api/recipes/filter/');
             await loadPopularRecipes();
         });
 
         async function loadRecipes(url) {
             try {
                 const response = await fetch(url);
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
                 const recipes = await response.json();
                 renderRecipes(recipes, 'recipeList');
             } catch (err) {
@@ -85,7 +98,7 @@
 
         async function loadPopularRecipes() {
             try {
-                const response = await fetch('/recipes/popular?limit=5');
+                const response = await fetch('/api/recipes/popular?limit=5');
                 const recipes = await response.json();
                 renderRecipes(recipes, 'popularRecipes', true);
             } catch (err) {
@@ -98,34 +111,36 @@
             container.innerHTML = '';
 
             recipes.forEach(recipe => {
-                const recipeCard = `
-                    <div class="recipe-card ${isHorizontal ? 'horizontal' : ''}">
-                        <img src="${recipe.image_url || '/static/default-recipe.jpg'}"
-                             alt="${recipe.title}"
-                             class="recipe-image">
-                        <div class="recipe-content">
-                            <h3 class="recipe-title">${recipe.title}</h3>
-                            <div class="recipe-meta">
-                                <span class="time">⏱ ${recipe.cooking_time} мин</span>
-                                <span class="rating">⭐ ${recipe.average_rating?.toFixed(1) || 'Нет оценок'}</span>
-                            </div>
-                            <a href="/recipe/${recipe.id}" class="details-link">Смотреть рецепт →</a>
+                const recipeCard = document.createElement('div');
+                recipeCard.className = `recipe-card ${isHorizontal ? 'horizontal' : ''}`;
+                recipeCard.onclick = () => window.location.href = `/recipe/${recipe.id}`;
+
+                recipeCard.innerHTML = `
+                    <img src="${recipe.image_url || '/static/default-recipe.jpg'}"
+                         alt="${recipe.title}"
+                         class="recipe-image">
+                    <div class="recipe-content">
+                        <h3 class="recipe-title">${recipe.title}</h3>
+                        <div class="recipe-meta">
+                            <span class="time">⏱ ${recipe.cooking_time} мин</span>
+                            <span class="rating">⭐ ${recipe.average_rating?.toFixed(1) || 'Нет оценок'}</span>
                         </div>
                     </div>
                 `;
-                container.insertAdjacentHTML('beforeend', recipeCard);
+
+                container.appendChild(recipeCard);
             });
         }
 
         function applyFilters() {
             const maxTime = document.getElementById('maxTime').value;
             const cuisine = document.getElementById('cuisineFilter').value;
-            let url = '/recipes';
+            const params = new URLSearchParams();
 
-            if (maxTime || cuisine) {
-                url = `/recipes/time/${maxTime}?cuisine=${cuisine}`;
-            }
+            if (maxTime) params.append('max_cooking_time', maxTime);
+            if (cuisine) params.append('cuisine', cuisine);
 
+            const url = `/api/recipes/filter/?${params.toString()}`;
             loadRecipes(url);
         }
     </script>

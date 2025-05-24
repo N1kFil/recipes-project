@@ -42,16 +42,16 @@ class RecipeCrud:
 
     @staticmethod
     async def create_recipe(db: AsyncSession, title: str, description: str, cuisine: str, giga_chat_description: str,
-                            cooking_time: int):
+                            cooking_time: int, image_url: str = None):
         new_recipe = Recipe(
             title=title,
             description=description,
             cuisine=cuisine,
-            ratings=[],
             average_rating=0.0,
             ratings_count=0,
             giga_chat_description=giga_chat_description,
-            cooking_time=cooking_time
+            cooking_time=cooking_time,
+            image_url=image_url
         )
         db.add(new_recipe)
         await db.commit()
@@ -70,27 +70,27 @@ class RecipeCrud:
 
     @staticmethod
     async def add_review(db: AsyncSession, recipe_id: int, user_id: int, rating: int, text: str):
-        # Добавляем отзыв
-        new_review = Review(
-            recipe_id=recipe_id,
-            user_id=user_id,
-            rating=rating,
-            text=text
-        )
+        new_review = Review(recipe_id=recipe_id, user_id=user_id, rating=rating, text=text)
         db.add(new_review)
-
-        # Обновляем список оценок рецепта
-        query = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
-        recipe = query.scalars().first()
-        if recipe:
-            recipe.ratings.append(rating)
-            recipe.ratings_count = len(recipe.ratings)
-            recipe.average_rating = sum(recipe.ratings) / recipe.ratings_count
-            await db.commit()
-            await db.refresh(recipe)
-
         await db.commit()
         await db.refresh(new_review)
+
+        # Пересчёт средней оценки и количества отзывов
+        result = await db.execute(select(Review.rating).where(Review.recipe_id == recipe_id))
+        ratings = result.scalars().all()
+
+        if ratings:
+            avg = sum(ratings) / len(ratings)
+            count = len(ratings)
+
+            query = await db.execute(select(Recipe).where(Recipe.id == recipe_id))
+            recipe = query.scalars().first()
+            if recipe:
+                recipe.average_rating = avg
+                recipe.ratings_count = count
+                await db.commit()
+                await db.refresh(recipe)
+
         return new_review
 
     @staticmethod

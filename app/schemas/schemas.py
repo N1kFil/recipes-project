@@ -8,14 +8,15 @@ class ReviewBase(BaseModel):
 
 
 class RecipeBase(BaseModel):
+    id: int
     title: str
     description: Optional[str]
     cuisine: Optional[str]
-    ratings: Optional[list[ReviewBase]]
     average_rating: float
     ratings_count: int
     giga_chat_description: Optional[str]
     cooking_time: Optional[int]
+    image_url: Optional[str]
 
     class Config:
         from_attributes = True
