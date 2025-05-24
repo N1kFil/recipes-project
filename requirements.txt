@@ -44,3 +44,4 @@ greenlet
 pyjwt
 pydantic-settings
 pathlib
+selenium

@@ -120,3 +120,286 @@ a {
 a:hover {
     text-decoration: underline;
 }
+
+
+/* Навигация */
+.navbar {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1rem 0;
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+.nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    color: #555;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #4CAF50;
+}
+
+.logout-btn {
+    background: #4CAF50;
+    color: white!important;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+/* Основной контейнер */
+.main-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 20px;
+}
+
+/* Фильтры */
+.filters-container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.filter-group {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-input {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 200px;
+}
+
+.filter-select {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 200px;
+    background: white;
+}
+
+.filter-btn {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.filter-btn:hover {
+    background: #45a049;
+}
+
+/* Заголовки секций */
+.section-title {
+    font-size: 1.8rem;
+    margin: 2rem 0 1.5rem;
+    color: #333;
+}
+
+/* Карточки рецептов */
+.recipe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.recipe-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.3s;
+}
+
+.recipe-card:hover {
+    transform: translateY(-5px);
+}
+
+.recipe-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 3px solid #4CAF50;
+}
+
+.recipe-content {
+    padding: 1.5rem;
+}
+
+.recipe-title {
+    margin: 0 0 1rem;
+    font-size: 1.1rem;
+    color: #222;
+}
+
+.recipe-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.details-link {
+    color: #4CAF50;
+    text-decoration: none;
+    font-weight: 500;
+    display: block;
+    text-align: right;
+}
+
+/* Горизонтальный скролл */
+.popular-scroller {
+    display: flex;
+    overflow-x: auto;
+    gap: 2rem;
+    padding-bottom: 1rem;
+}
+
+.popular-scroller .recipe-card {
+    flex: 0 0 300px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-input,
+    .filter-select {
+        width: 100%;
+    }
+}
+
+
+/* Стили для страницы рецепта */
+.recipe-detail {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.recipe-main-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.recipe-header {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.recipe-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+
+.info-block {
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #333;
+}
+
+.info-value {
+    float: right;
+    color: #666;
+}
+
+.recipe-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.recipe-section h2 {
+    color: #4CAF50;
+    margin-top: 0;
+}
+
+.ingredients-list, .steps-list {
+    padding-left: 1.5rem;
+    color: #444;
+}
+
+.ingredients-list li {
+    margin: 0.5rem 0;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 6px;
+}
+
+.steps-list li {
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.description {
+    line-height: 1.6;
+    color: #444;
+    white-space: pre-line;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+}
+
+.giga-chat {
+    padding: 1.5rem;
+    background: #e3f2fd;
+    border-left: 4px solid #2196F3;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.recipe-card {
+    cursor: pointer;
+    transition: transform 0.1s ease;
+}
+
+.recipe-card:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

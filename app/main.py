@@ -52,15 +52,41 @@ def get_current_user(access_token: str = Cookie(default=None)):
 
 
 @app.get("/", response_class=RedirectResponse)
-async def root():
-    return RedirectResponse("/login")
+async def root(request: Request, user: dict | None = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse("/login")
+    return templates.TemplateResponse("recipes.html", {"request": request})
+
+
+@app.get("/recipe/{recipe_id}", response_model=RecipeBase)
+async def recipe_page(
+        request: Request,
+        user: dict | None = Depends(get_current_user)
+):
+    if not user:
+        return RedirectResponse(url="/login")
+    return templates.TemplateResponse("recipe_detail.html", {"request": request})
 
 
 @app.get("/register", response_class=HTMLResponse)
 async def register_get(request: Request, user: dict | None = Depends(get_current_user)):
     if user:
-        return RedirectResponse(url="/recipes")
+        return RedirectResponse(url="/")
     return templates.TemplateResponse("register.html", {"request": request})
+
+
+@app.get("/login")
+def login_page(request: Request, user: dict | None = Depends(get_current_user)):
+    if user:
+        return RedirectResponse(url="/")
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse(url="/login")
+    response.delete_cookie("access_token")
+    return response
 
 
 @app.post("/register")
@@ -78,16 +104,9 @@ async def register_post(user_data: UserCreate, db: AsyncSession = Depends(get_db
     }
     token = auth_utils.encode_jwt(jwt_payload)
     cookie = auth_utils.create_cookie(token)
-    response = JSONResponse(content={"success": True, "redirect_url": "/recipes", "token": token})
+    response = JSONResponse(content={"success": True, "redirect_url": "/", "token": token})
     response.set_cookie(**cookie)
     return response
-
-
-@app.get("/login")
-def login_page(request: Request, user: dict | None = Depends(get_current_user)):
-    if user:
-        return RedirectResponse(url="/recipes")
-    return templates.TemplateResponse("login.html", {"request": request})
 
 
 @app.post("/login")
@@ -104,26 +123,19 @@ async def login_post(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     }
     token = auth_utils.encode_jwt(jwt_payload)
     cookie = auth_utils.create_cookie(token)
-    response = JSONResponse(content={"success": True, "redirect_url": "/recipes", "token": token})
+    response = JSONResponse(content={"success": True, "redirect_url": "/", "token": token})
     response.set_cookie(**cookie)
     return response
 
 
-@app.get("/logout")
-def logout():
-    response = RedirectResponse(url="/login")
-    response.delete_cookie("access_token")
-    return response
-
-
-@app.get("/recipes", response_model=List[RecipeBase])
+@app.get("/api/recipes", response_model=List[RecipeBase])
 async def get_all_recipes(db: AsyncSession = Depends(get_db), user: dict | None = Depends(get_current_user)):
     if not user:
         return RedirectResponse(url="/login")
     return await RecipeCrud.get_recipes_by_filters(db)
 
 
-@app.get("/recipes/popular", response_model=List[RecipeBase])
+@app.get("/api/recipes/popular", response_model=List[RecipeBase])
 async def get_popular_recipes(db: AsyncSession = Depends(get_db),
                               limit: int = Query(10, ge=1),
                               user: dict | None = Depends(get_current_user)):
@@ -132,29 +144,19 @@ async def get_popular_recipes(db: AsyncSession = Depends(get_db),
     return await RecipeCrud.get_popular_recipes(db, limit=limit)
 
 
-@app.get("/recipes/cuisine/{cuisine}", response_model=List[RecipeBase])
-async def get_recipes_by_cuisine(
-        cuisine: str,
+@app.get("/api/recipes/filter/", response_model=List[RecipeBase])
+async def get_recipes_by_filter(
+        cuisine: str | None = None,
+        max_cooking_time: int | None = None,
         db: AsyncSession = Depends(get_db),
         user: dict | None = Depends(get_current_user)
 ):
     if not user:
         return RedirectResponse(url="/login")
-    return await RecipeCrud.get_recipes_by_cuisine(db, cuisine=cuisine)
+    return await RecipeCrud.get_recipes_by_filters(db, cuisine=cuisine, max_cooking_time=max_cooking_time)
 
 
-@app.get("/recipes/time/{max_cooking_time}", response_model=List[RecipeBase])
-async def get_recipes_by_time(
-        max_cooking_time: int,
-        db: AsyncSession = Depends(get_db),
-        user: dict | None = Depends(get_current_user)
-):
-    if not user:
-        return RedirectResponse(url="/login")
-    return await RecipeCrud.get_recipes_by_filters(db, max_cooking_time=max_cooking_time)
-
-
-@app.get("/recipes/{recipe_id}", response_model=RecipeBase)
+@app.get("/api/recipe/{recipe_id}", response_model=RecipeBase)
 async def get_recipe_details(
         recipe_id: int,
         db: AsyncSession = Depends(get_db),
