@@ -170,5 +170,44 @@ async def get_recipe_details(
     return recipe
 
 
+@app.post("/api/addreview")
+async def add_review(review_data: ReviewBase, recipe_id: int, db: AsyncSession = Depends(get_db), user: dict | None = Depends(get_current_user)):
+    if not user:
+        return RedirectResponse(url="/login")
+
+    user_id = int(user["sub"])
+
+    recipe = await RecipeCrud.get_recipe(db, recipe_id)
+    if not recipe:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recipe not found"
+        )
+
+    new_review = await RecipeCrud.add_review(
+        db=db,
+        recipe_id=recipe_id,
+        user_id=user_id,
+        rating=review_data.rating,
+        text=review_data.text
+    )
+
+    response = JSONResponse(content={"success": True, "review_id": new_review.id})
+    return response
+
+
+@app.get("/api/reviews/{recipe_id}", response_model=List[ReviewResponse])
+async def get_reviews(
+        recipe_id: int,
+        db: AsyncSession = Depends(get_db),
+        user: dict | None = Depends(get_current_user)
+):
+    if not user:
+        return RedirectResponse(url="/login")
+
+    reviews = await RecipeCrud.get_reviews_for_recipe(db, recipe_id)
+    return reviews
+
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)

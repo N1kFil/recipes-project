@@ -94,6 +94,11 @@ class RecipeCrud:
         return new_review
 
     @staticmethod
+    async def get_reviews_for_recipe(db: AsyncSession, recipe_id: int):
+        query = await db.execute(select(Review).where(Review.recipe_id == recipe_id).options(selectinload(Review.user)))
+        return query.scalars().all()
+
+    @staticmethod
     async def get_recipes_by_filters(db: AsyncSession, cuisine: str = None, max_cooking_time: int = None):
         query = select(Recipe)
         filters = []
