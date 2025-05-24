@@ -6,88 +6,113 @@
     <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">🍳 RecipeApp</div>
-            <div class="nav-links">
-                <a href="/">Все рецепты</a>
-                <a href="/logout" class="logout-btn">Выйти</a>
-            </div>
-        </div>
-    </nav>
+    <!-- Навигация (остается без изменений) -->
 
     <div class="main-container">
         <div class="recipe-detail" id="recipeContainer">
-            <!-- Контент будет загружен динамически -->
-            <div class="loader">Загрузка рецепта...</div>
+            <!-- Основной контент рецепта -->
+
+            <!-- Блок отзывов -->
+            <div class="reviews-section">
+                <h2>Отзывы</h2>
+                <button class="add-review-btn" onclick="showReviewModal()">✏️ Оставить отзыв</button>
+                <div class="reviews-container" id="reviewsContainer">
+                    <!-- Отзывы будут загружены здесь -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для отзыва -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReviewModal()">&times;</span>
+            <h3>Ваш отзыв</h3>
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <div class="form-group">
+                    <label>Оценка (1-5):</label>
+                    <input type="number" id="rating" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий:</label>
+                    <textarea id="comment" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Отправить</button>
+            </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const recipeId = window.location.pathname.split('/').pop();
-            await loadRecipe(recipeId);
-        });
+        // Загрузка рецепта (существующий код)
 
-        async function loadRecipe(recipeId) {
+        // Новый код для работы с отзывами
+        async function loadReviews(recipeId) {
             try {
-                const response = await fetch(`/api/recipe/${recipeId}`);
-                if (!response.ok) throw new Error('Рецепт не найден');
-
-                const recipe = await response.json();
-                renderRecipe(recipe);
-
+                const response = await fetch(`/api/reviews/${recipeId}`);
+                if (!response.ok) throw new Error('Ошибка загрузки отзывов');
+                const reviews = await response.json();
+                renderReviews(reviews);
             } catch (error) {
-                document.getElementById('recipeContainer').innerHTML = `
-                    <div class="error-message">
-                        ❌ Ошибка загрузки рецепта: ${error.message}
-                    </div>
-                `;
+                console.error('Ошибка:', error);
             }
         }
 
-        function renderRecipe(recipe) {
-            const container = document.getElementById('recipeContainer');
-            container.innerHTML = `
-                <h1 class="recipe-title">${recipe.title}</h1>
-
-                <div class="recipe-header">
-                    <img src="${recipe.image_url || '/static/default-recipe.jpg'}"
-                         alt="${recipe.title}"
-                         class="recipe-main-image">
-
-                    <div class="recipe-info">
-                        <div class="info-block">
-                            <span class="info-label">⏱ Время приготовления:</span>
-                            <span class="info-value">${recipe.cooking_time} мин</span>
-                        </div>
-                        <div class="info-block">
-                            <span class="info-label">⭐ Рейтинг:</span>
-                            <span class="info-value">${recipe.average_rating?.toFixed(1) || 'Нет оценок'}</span>
-                        </div>
-                        <div class="info-block">
-                            <span class="info-label">🍽 Кухня:</span>
-                            <span class="info-value">${recipe.cuisine || 'Не указано'}</span>
-                        </div>
+        function renderReviews(reviews) {
+            const container = document.getElementById('reviewsContainer');
+            container.innerHTML = reviews.map(review => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="user-id">Пользователь ${review.user_id}</span>
+                        <span class="rating">⭐ ${review.rating}</span>
                     </div>
+                    <div class="review-comment">${review.comment}</div>
+                    <div class="review-date">${new Date(review.created_at).toLocaleDateString()}</div>
                 </div>
-
-                <div class="recipe-section">
-                    <h2>Описание</h2>
-                    <div class="description">
-                        ${recipe.description || "Описание отсутствует"}
-                    </div>
-                </div>
-
-                ${recipe.giga_chat_description ? `
-                <div class="recipe-section">
-                    <h2>Краткое описание из GigaChat</h2>
-                    <div class="giga-chat">
-                        ${recipe.giga_chat_description}
-                    </div>
-                </div>` : ''}
-            `;
+            `).join('');
         }
+
+        function showReviewModal() {
+            document.getElementById('reviewModal').style.display = 'block';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        async function submitReview(event) {
+            event.preventDefault();
+            const recipeId = window.location.pathname.split('/').pop();
+            const reviewData = {
+                rating: parseInt(document.getElementById('rating').value),
+                comment: document.getElementById('comment').value
+            };
+
+            try {
+                const response = await fetch(`/api/addreview/${recipeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(reviewData)
+                });
+
+                if (response.ok) {
+                    closeReviewModal();
+                    await loadReviews(recipeId);
+                } else {
+                    alert('Ошибка при отправке отзыва');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        }
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            const recipeId = window.location.pathname.split('/').pop();
+            await loadRecipe(recipeId);
+            await loadReviews(recipeId);
+        });
     </script>
 </body>
 </html>
