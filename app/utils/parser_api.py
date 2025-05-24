@@ -19,7 +19,7 @@ async def fetch_random_meal():
     url = "https://www.themealdb.com/api/json/v1/1/random.php"
     connector = aiohttp.TCPConnector(ssl=False)  # Отключаем проверку SSL
     async with aiohttp.ClientSession(connector=connector) as session:
-        async with session.get(url, ) as response:
+        async with session.get(url) as response:
             if response.status == 200:
                 data = await response.json()
                 return data["meals"][0] if data["meals"] else None
@@ -37,6 +37,7 @@ async def get_meal_details():
         "title": meal["strMeal"],
         "category": category,
         "cuisine": meal["strArea"],
+        "image_url": meal["strMealThumb"],  # Добавляем URL изображения
         "cooking_time": COOKING_TIMES.get(category, COOKING_TIMES["Miscellaneous"]),
         "ingredients": await extract_ingredients(meal),
         "instructions": meal["strInstructions"]
@@ -80,11 +81,17 @@ async def main():
         short_info = get_short_description(json_string_meal)
 
         async for db in get_db():
-            await RecipeCrud.create_recipe(db=db, title=meal['title'], description=info,
-                                           cuisine=meal['cuisine'], giga_chat_description=short_info,
-                                           cooking_time=meal['cooking_time'])
+            await RecipeCrud.create_recipe(
+                db=db,
+                title=meal['title'],
+                description=info,
+                cuisine=meal['cuisine'],
+                giga_chat_description=short_info,
+                cooking_time=meal['cooking_time'],
+                image_url=meal['image_url']  # Добавляем URL изображения в базу
+            )
 
-        print("Добавил рецепт в базу")
+        print(f"Добавил рецепт '{meal['title']}' в базу (изображение: {meal['image_url']})")
 
 
 # Запуск асинхронного кода
