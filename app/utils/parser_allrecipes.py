@@ -170,14 +170,14 @@ def parse_recipe_page(driver, url):
 def make_meal_details(meal):
 	"""Выводит полную информацию о блюде"""
 	s = f"""Title: {meal['title']}
-Country: {meal['cuisine']}
+Country: {meal['cuisine'][0]}
 Time cooking: {meal['timem']} minutes
 
 Ingredients:
 {"\n".join(item for item in meal["ingredients"])}
 
 Instructions:
-{meal["steps"]}
+{".".join(item for item in meal["steps"])}
 """.strip()
 	return s
 
