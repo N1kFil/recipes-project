@@ -45,7 +45,7 @@ def verify_token(token: str):
 
 def get_current_user(access_token: str = Cookie(default=None)):
     if access_token:
-        payload = auth_utils.decode_jwt(access_token)
+        payload = verify_token(access_token)
         if payload:
             return payload
     return None
