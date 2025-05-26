@@ -18,8 +18,27 @@
 
     <div class="main-container">
         <div class="recipe-detail" id="recipeContainer">
-            <!-- Контент будет загружен динамически -->
+            <!-- Основной контент рецепта -->
             <div class="loader">Загрузка рецепта...</div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для отзыва -->
+    <div id="reviewModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReviewModal()">&times;</span>
+            <h3>Ваш отзыв</h3>
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <div class="form-group">
+                    <label>Оценка (1-5):</label>
+                    <input type="number" id="rating" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label>Комментарий:</label>
+                    <textarea id="text" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Отправить</button>
+            </form>
         </div>
     </div>
 
@@ -27,16 +46,15 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const recipeId = window.location.pathname.split('/').pop();
             await loadRecipe(recipeId);
+            await loadReviews(recipeId);
         });
 
         async function loadRecipe(recipeId) {
             try {
                 const response = await fetch(`/api/recipe/${recipeId}`);
                 if (!response.ok) throw new Error('Рецепт не найден');
-
                 const recipe = await response.json();
                 renderRecipe(recipe);
-
             } catch (error) {
                 document.getElementById('recipeContainer').innerHTML = `
                     <div class="error-message">
@@ -86,7 +104,80 @@
                         ${recipe.giga_chat_description}
                     </div>
                 </div>` : ''}
+
+                <div class="reviews-section">
+                    <h2>Отзывы</h2>
+                    <button class="add-review-btn" onclick="showReviewModal()">✏️ Оставить отзыв</button>
+                    <div class="reviews-container" id="reviewsContainer"></div>
+                </div>
             `;
+        }
+
+        async function loadReviews(recipeId) {
+            try {
+                const response = await fetch(`/api/reviews/${recipeId}`);
+                if (!response.ok) throw new Error('Ошибка загрузки отзывов');
+                const reviews = await response.json();
+                renderReviews(reviews);
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        }
+
+        function renderReviews(reviews) {
+            const container = document.getElementById('reviewsContainer');
+            container.innerHTML = reviews.map(review => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="user-id">Пользователь ${review.user_id}</span>
+                        <span class="review-rating">⭐ ${review.rating}</span>
+                    </div>
+                    <div class="review-comment">${review.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function showReviewModal() {
+            document.getElementById('reviewModal').style.display = 'block';
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+
+        async function submitReview(event) {
+            event.preventDefault();
+            const recipeId = window.location.pathname.split('/').pop();
+            const reviewData = {
+                rating: parseInt(document.getElementById('rating').value),
+                text: document.getElementById('text').value
+            };
+
+            try {
+                const response = await fetch(`/api/addreview?recipe_id=${recipeId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(reviewData)
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                if (response.ok) {
+                    closeReviewModal();
+                    await loadReviews(recipeId);
+                    document.getElementById('reviewForm').reset();
+                } else {
+                    const errorData = await response.json();
+                    alert(`Ошибка: ${errorData.detail}`);
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
         }
     </script>
 </body>
